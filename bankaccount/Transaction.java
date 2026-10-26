@@ -10,9 +10,9 @@ public class Transaction {
   private static final DateTimeFormatter TIMESTAMP_FORMAT =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-  String type;
-  double amount;
-  LocalDateTime timeStamp;
+  private final String type;
+  private final double amount;
+  private final LocalDateTime timeStamp;
 
   /**
    * Creates a transaction with the current local date and time.
@@ -26,10 +26,42 @@ public class Transaction {
     this.timeStamp = LocalDateTime.now();
   }
 
+  /**
+   * Gets the transaction type.
+   *
+   * @return transaction type
+   */
+  public String getType() {
+    return type;
+  }
+
+  /**
+   * Gets the transaction amount.
+   *
+   * @return transaction amount
+   */
+  public double getAmount() {
+    return amount;
+  }
+
+  /**
+   * Gets the date and time of the transaction.
+   *
+   * @return transaction date and time
+   */
+  public LocalDateTime getTimeStamp() {
+    return timeStamp;
+  }
+
+  /**
+   * Returns a formatted description of this transaction.
+   *
+   * @return formatted transaction details
+   */
   @Override
   public String toString() {
     return String.format(
-        "Transaction{type='%s', amount=%s, time_stamp=%s}",
+        "Transaction [type=%s, amount=%s, time_stamp=%s]",
         type,
         amount,
         timeStamp.format(TIMESTAMP_FORMAT));

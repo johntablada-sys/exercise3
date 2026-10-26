@@ -1,5 +1,8 @@
 package bankaccount;
 
+import bankaccount.exception.AccountFrozenException;
+import bankaccount.exception.InsufficientFundsException;
+import bankaccount.exception.InvalidAmountException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -11,8 +14,11 @@ import java.util.List;
 public class BankAccount {
   private BigDecimal balance = BigDecimal.ZERO;
   private final List<Transaction> transactionHistory;
-  boolean isFrozen;
+  private boolean isFrozen;
 
+  /**
+   * Creates an empty, unfrozen bank account.
+   */
   public BankAccount() {
     transactionHistory = new ArrayList<>();
   }
@@ -21,38 +27,42 @@ public class BankAccount {
    * Deposits a positive amount into the account.
    *
    * @param amount amount to deposit
-   * @return updated account balance
-   * @throws IllegalStateException if the account is frozen
-   * @throws IllegalArgumentException if the amount is not positive and finite
+   * @throws AccountFrozenException if the account is frozen
+   * @throws InvalidAmountException if the amount is not positive and finite
    */
-  public double deposit(double amount) {
+  public void deposit(double amount) throws AccountFrozenException, InvalidAmountException {
     if (isFrozen) {
-      throw new IllegalStateException("Account is FROZEN, unable to transact");
+      throw new AccountFrozenException("Account is FROZEN. Unable to transact.");
+    }
+    if (!Double.isFinite(amount) || amount <= 0) {
+      throw new InvalidAmountException("Invalid amount. Must be greater than 0");
     }
     balance = balance.add(toCents(amount));
     transactionHistory.add(new Transaction("Deposit", amount));
-    return getBalance();
   }
 
   /**
    * Withdraws a positive amount if the account is not frozen and has enough funds.
    *
    * @param amount amount to withdraw
-   * @return updated account balance
-   * @throws IllegalStateException if the account is frozen
-   * @throws IllegalArgumentException if the amount is invalid or exceeds the balance
+   * @throws AccountFrozenException if the account is frozen
+   * @throws InvalidAmountException if the amount is not positive and finite
+   * @throws InsufficientFundsException if the amount exceeds the account balance
    */
-  public double withdraw(double amount) {
+  public void withdraw(double amount)
+      throws AccountFrozenException, InvalidAmountException, InsufficientFundsException {
     if (isFrozen) {
-      throw new IllegalStateException("Account is FROZEN, unable to transact");
+      throw new AccountFrozenException("Account is FROZEN. Unable to transact.");
+    }
+    if (!Double.isFinite(amount) || amount <= 0) {
+      throw new InvalidAmountException("Invalid amount. Must be greater than 0");
     }
     BigDecimal withdrawal = toCents(amount);
     if (withdrawal.compareTo(balance) > 0) {
-      throw new IllegalArgumentException("Withdrawal exceeds account balance");
+      throw new InsufficientFundsException("Insufficient balance.");
     }
     balance = balance.subtract(withdrawal);
     transactionHistory.add(new Transaction("Withdraw", amount));
-    return getBalance();
   }
 
   /**
@@ -74,9 +84,6 @@ public class BankAccount {
   }
 
   private BigDecimal toCents(double amount) {
-    if (!Double.isFinite(amount) || amount <= 0) {
-      throw new IllegalArgumentException("Amount must be a positive finite number");
-    }
     return BigDecimal.valueOf(amount).setScale(2, RoundingMode.CEILING);
   }
 
@@ -94,10 +101,12 @@ public class BankAccount {
     isFrozen = false;
   }
 
+  /**
+   * Checks whether the account is frozen.
+   *
+   * @return {@code true} if the account is frozen
+   */
   public boolean isFrozen() {
     return isFrozen;
   }
-
-
-  
 }
